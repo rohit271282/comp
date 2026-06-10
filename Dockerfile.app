@@ -18,6 +18,9 @@ COPY packages/ui/package.json ./packages/ui/
 COPY packages/utils/package.json ./packages/utils/
 
 COPY apps/app/package.json ./apps/app/
+COPY apps/portal/package.json ./apps/portal/
+COPY apps/api/package.json ./apps/api/
+COPY apps/framework-editor/package.json ./apps/framework-editor/
 
 RUN PRISMA_SKIP_POSTINSTALL_GENERATE=true bun install --ignore-scripts
 

@@ -72,7 +72,6 @@ ENV NEXT_PUBLIC_BETTER_AUTH_URL=$NEXT_PUBLIC_BETTER_AUTH_URL \
     CI=1
 
 RUN cd apps/app && \
-    node -e "const fs=require('fs');let c=fs.readFileSync('next.config.ts','utf8');c=c.replace(/ignoreBuildErrors:[^,]+,/,'ignoreBuildErrors: true,');fs.writeFileSync('next.config.ts',c);" && \
     bunx prisma generate --schema=prisma/schema && \
     node ../../packages/db/scripts/fix-generated-extensions.js src/generated/prisma && \
     node /app/node_modules/next/dist/bin/next build

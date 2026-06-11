@@ -10,14 +10,11 @@ export const APP_AWS_QUESTIONNAIRE_UPLOAD_BUCKET = process.env.APP_AWS_QUESTIONN
 export const APP_AWS_KNOWLEDGE_BASE_BUCKET = process.env.APP_AWS_KNOWLEDGE_BASE_BUCKET;
 export const APP_AWS_ORG_ASSETS_BUCKET = process.env.APP_AWS_ORG_ASSETS_BUCKET;
 
-let s3ClientInstance: S3Client;
+let s3ClientInstance: S3Client | null = null;
 
-try {
-  if (!APP_AWS_ACCESS_KEY_ID || !APP_AWS_SECRET_ACCESS_KEY || !BUCKET_NAME || !APP_AWS_REGION) {
-    console.error('[S3] AWS S3 credentials or configuration missing. Check environment variables.');
-    throw new Error('AWS S3 credentials or configuration missing. Check environment variables.');
-  }
-
+if (!APP_AWS_ACCESS_KEY_ID || !APP_AWS_SECRET_ACCESS_KEY || !BUCKET_NAME || !APP_AWS_REGION) {
+  console.warn('[S3] AWS credentials not configured — file upload features disabled');
+} else {
   s3ClientInstance = new S3Client({
     endpoint: APP_AWS_ENDPOINT || undefined,
     region: APP_AWS_REGION,
@@ -27,18 +24,6 @@ try {
     },
     forcePathStyle: !!APP_AWS_ENDPOINT,
   });
-} catch (error) {
-  console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-  console.error('!!! FAILED TO INITIALIZE S3 CLIENT !!!');
-  console.error('!!! This is likely due to missing or invalid environment variables. !!!');
-  console.error('Error:', error);
-  console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-
-  // Create a dummy client that will fail gracefully at runtime instead of crashing during initialization
-  s3ClientInstance = null as any;
-  console.error(
-    '[S3] Creating dummy S3 client - file uploads will fail until credentials are fixed',
-  );
 }
 
 export const s3Client = s3ClientInstance;
@@ -128,6 +113,10 @@ export async function getFleetAgent({ os }: { os: 'macos' | 'windows' | 'linux' 
 
   if (!fleetBucketName) {
     throw new Error('FLEET_AGENT_BUCKET_NAME is not defined.');
+  }
+
+  if (!s3Client) {
+    throw new Error('S3 client is not configured.');
   }
 
   const getFleetAgentCommand = new GetObjectCommand({
